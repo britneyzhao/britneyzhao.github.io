@@ -183,7 +183,7 @@ $$\mathbf{N}_{\mathbf{A}}(C_0, C_1) = 2\frac{\mathbf{z}^T (\mathbf{D} - \mathbf{
 
 where $$\mathbf{D}$$ is the diagonal matrix with nonzero entries $$d_{ii} = d_i$$, and  where $$d_i = \sum_{j = 1}^n a_i$$ is the degree (row-sum) from before.
 
-With this new approach, let's create a new function `transform()` which will return the appropriate **z** vector based on the formula above:
+Note that `z[i]` will be greater than 0 if the point is in $$C_0$$ and will be less than 0 if the point is in $$C_1$$. With this new approach, let's create a new function `transform()` which will return the appropriate **z** vector based on the formula above:
 
 ```python
 #create z based on the formula
@@ -229,4 +229,44 @@ Looks like everything checks out!
 
 ## Part D - Minimizing a Function
 
-The matrix multiplication above can be optimizing by substituing **z** for its orthogonal complement relative to $$\mathbf{D}\mathbb{1}$$
+The matrix multiplication above can be optimized by substituing **z** for its orthogonal complement relative to $$\mathbf{D}\mathbb{1}$$ and optimizing that. 
+
+The following code define the orthogonal complement calculation:
+
+```python
+def orth(u, v):
+    return (u @ v) / (v @ v) * v
+
+e = np.ones(n) 
+
+d = D @ e
+
+def orth_obj(z):
+    z_o = z - orth(z, d)
+    return (z_o @ (D - A) @ z_o)/(z_o @ D @ z_o)
+```
+
+For this part, let's use the `minimize` function from `scipy.optimize` to minimize this function `orth_obj()` like so:
+
+```python
+import scipy
+z_ = scipy.optimize.minimize(orth_obj, z)
+```
+
+Now, `z_` is our minimized **z** vector. 
+
+## Part E - Graphing Clusters with the Minimized Vector
+
+Let's plot the moon-shaped clusters again using this optimized `z_` vector to dictate which color each data point is. In theory, `z_[i]` should be greater than 0 when it is in $$C_0$$, but since this isn't the best optimization problem, we'll make the bottom threshold a small negative number to accommodate for this error. In this instance, I chose `-0.0015`:
+
+```python
+plt.scatter(X[:,0], X[:,1], c = [z_.x < -0.0015])
+plt.show()
+```
+![hw2_firstcolorplot.png]({{ site.baseurl }}/images/hw2_firstcolorplot.png)
+
+Notice how we came close, but it isn't perfect! The left tip of the bottom moon-shaped cluster is purple instead of yellow... So let's make the optimization a little better!
+
+## Part F - Laplacian Matrix
+
+
