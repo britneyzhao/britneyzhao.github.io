@@ -5,7 +5,7 @@ title: Blog Post 2 - Spectral Clustering
 
 This blog post will explain a simple version of the clustering algorithm for clustering data points.
 
-## Part A
+## Part A - Similarity Matrix
 
 This blogpost will be using multiple modules to graph the data accordingly, so let's import those modules right now!
 
@@ -72,3 +72,109 @@ print(A)
  [0. 0. 1. ... 1. 0. 1.]
  [0. 0. 0. ... 1. 1. 0.]]
 ```
+
+Our matrix looks great! Filled with only 0s and 1s. 
+
+## Part B - Binary Norm Cut Objective
+
+Now that **A** contains information about which points are near which points, we will now try to cluster the data points accordingly. First, let's define some mathematical expressions: 
+
+Let $$d_i = \sum_{j = 1}^n a_{ij}$$ be the $$i$$th row-sum of $$\mathbf{A}$$, which is also called the *degree* of $$i$$. Let $$C_0$$ and $$C_1$$ be two clusters of the data points. We assume that every data point is in either $$C_0$$ or $$C_1$$. The cluster membership as being specified by `y`. We think of `y[i]` as being the label of point `i`. So, if `y[i] = 1`, then point `i` (and therefore row $$i$$ of $$\mathbf{A}$$) is an element of cluster $$C_1$$.  
+
+Now, to cluster the data points, we will compute the *binary norm cut objective* of the matrix **A**, which is the following: 
+
+$$N_{\mathbf{A}}(C_0, C_1)\equiv \mathbf{cut}(C_0, C_1)\left(\frac{1}{\mathbf{vol}(C_0)} + \frac{1}{\mathbf{vol}(C_1)}\right)\;.$$
+
+In this expression, 
+- $$\mathbf{cut}(C_0, C_1) \equiv \sum_{i \in C_0, j \in C_1} a_{ij}$$ is the *cut* of the clusters $$C_0$$ and $$C_1$$. 
+- $$\mathbf{vol}(C_0) \equiv \sum_{i \in C_0}d_i$$, where $$d_i = \sum_{j = 1}^n a_{ij}$$ is the *degree* of row $$i$$ (the total number of all other rows related to row $$i$$ through $$A$$). The *volume* of cluster $$C_0$$ is a measure of the size of the cluster. 
+
+Let's first focus on the cut term. Based on the formula, we can compute this term by summing up the entries `A[i,j]` for each pair of points `(i,j)` in different cluster. Since `y[i]` signifies which cluster the data point is in, we can write the code for a `cut()` function, which takes in the similarity matrix `A` and the cluster membership `y` and outputs the value of the cut term, like so:
+
+```python
+"""
+@param A: similarity matrix
+@param y: cluster membership vector
+@return the cut term
+"""
+def cut(A,y):
+    length, width = A.shape
+    cut = 0
+    
+    #loop through each element in A and sum up the points in different clusters as defined above
+    for i in range(length):
+        for j in range(width):
+            if y[i] != y[j]:
+                cut += A[i][j]
+    
+    return cut
+```
+
+Let's test this out with our similarity matrix **A** and cluster membership vector `y`. To compare, the cut object should be much smaller to a randomally generated vector. So, let's compare these two values like so: 
+
+```python
+cut_real = cut(A,y) #13.0
+rand_v = np.random.randint(0,2, size = (n,1)) 
+cut_rand = cut(A,rand_v)
+
+print(cut_real)
+print(cut_rand)
+```
+```
+13.0
+2242.0
+```
+
+Our correct cut object is much smaller, which means we're on the right track!
+
+Next, let's compute the volume term. To do so, we want the sum of row `i` if `y[i] == 0` for $$C_0$$ and `y[i] == 1` for $$C_1$$. We can compute this very easily and efficiently using list comprehension! So, let's create a `vols()` function that returns the volumes of each cluster as a tuple:
+
+```python
+"""
+@param A: similarity matrix
+@param y: cluster membership vector
+@return the volumes of each cluster as a tuple
+"""
+def vols(A,y):
+    length, width = A.shape
+    
+    vol0 = sum([sum(A[i]) for i in range(length) if y[i] == 0])
+    vol1 = sum([sum(A[i]) for i in range(length) if y[i] == 1])
+    
+    return (vol0, vol1)
+```
+
+Now that we have both `vols()` and `cut()` defined, we can create a `normcut()` function that uses these two functions to compute the normcut objective! Based on the formula, `normcut()` will be like so:
+
+```python
+def normcut(A,y):
+    v0, v1 = vols(A,y)
+    return cut(A,y)*((1/v0) + (1/v1))
+```
+
+Now, let's test this function! To compare, the norm cut of the correct labels should be significantly smaller than the norm cut of a randomly generated vector: 
+
+```python
+print(normcut(A,y))
+print(normcut(A, rand_v))
+```
+```
+0.02303682466323045
+1.9858316719148859
+```
+
+Notice that 0.023 is a lot smaller than 1.986, so we're on the right track!
+
+## Part C - Another Approach at Norm Cut
+
+Our approach works perfectly, however, using linear algebra, we can also derive the following vector **z** such that: 
+
+$$
+z_i = 
+\begin{cases}
+    \frac{1}{\mathbf{vol}(C_0)} &\quad \text{if } y_i = 0 \\ 
+    -\frac{1}{\mathbf{vol}(C_1)} &\quad \text{if } y_i = 1 \\ 
+\end{cases}
+$$
+
+
