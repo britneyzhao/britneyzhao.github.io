@@ -385,3 +385,41 @@ plt.scatter(X1[:,0], X1[:,1], c = spectral_clustering(X1, 0.4))
 ![hw2_colorplot1000noise.png]({{ site.baseurl }}/images/hw2_colorplot1000noise.png)
 
 Also looking good! Again, the tips of the moons closest to the other cluster are a little discolored, but this is minor again. 
+
+## Part I - Bull's Eye Graph
+
+Now, let's try our spectral clustering function on a bull's eye function!
+
+This is what the graph will look like with no coloring:
+
+```python
+n = 1000
+X, y = datasets.make_circles(n_samples=n, shuffle=True, noise=0.05, random_state=None, factor = 0.4)
+plt.scatter(X[:,0], X[:,1])
+```
+![hw2_bluebull.png]({{ site.baseurl }}/images/hw2_bluebull.png)
+
+Let's test different values of `epsilon` to see which one will result in the best coloring for each ring. 
+
+First, let's start larger. Let's have `epsilon = 0.6` and see what happens: 
+
+```python
+plt.scatter(X[:,0], X[:,1], c = spectral_clustering(X, 0.6))
+```
+![hw2_bull0.6.png]({{ site.baseurl }}/images/hw2_bull0.6.png)
+
+Oh no! We chose an epsilon that was too large. Let's lower it a little to `0.5`:
+
+```python
+plt.scatter(X[:,0], X[:,1], c = spectral_clustering(X, 0.5))
+```
+![hw2_bull0.5.png]({{ site.baseurl }}/images/hw2_bull0.5.png)
+
+Perfect! Just for fun, let's see what an even lower epsilon value looks like. Here, I set `epsilon = 0.2`: 
+
+```python
+plt.scatter(X[:,0], X[:,1], c = spectral_clustering(X, 0.2))
+```
+![hw2_bull0.2.png]({{ site.baseurl }}/images/hw2_bull0.2.png)
+
+Looks great! So, it seems that `epsilon <= 0.5` will do it for the bull's eye graph. Now, we have successfully created a spectral clustering function for graphs with two clusters!
