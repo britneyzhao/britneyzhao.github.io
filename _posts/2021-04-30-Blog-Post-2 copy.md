@@ -269,4 +269,49 @@ Notice how we came close, but it isn't perfect! The left tip of the bottom moon-
 
 ## Part F - Laplacian Matrix
 
+Like before, we want to minimize this function: 
+
+$$ R_\mathbf{A}(\mathbf{z})\equiv \frac{\mathbf{z}^T (\mathbf{D} - \mathbf{A})\mathbf{z}}{\mathbf{z}^T\mathbf{D}\mathbf{z}} $$
+
+with respect to **z**. 
+
+The Rayleigh-Ritz Theorem states that the minimizing $\mathbf{z}$ must be the solution with smallest eigenvalue of the generalized eigenvalue problem 
+
+$$ (\mathbf{D} - \mathbf{A}) \mathbf{z} = \lambda \mathbf{D}\mathbf{z}\;, \quad \mathbf{z}^T\mathbf{D}\mathbb{1} = 0$$
+
+which is equivalent to the standard eigenvalue problem 
+
+$$ \mathbf{D}^{-1}(\mathbf{D} - \mathbf{A}) \mathbf{z} = \lambda \mathbf{z}\;, \quad \mathbf{z}^T\mathbb{1} = 0\;.$$
+
+Why is this helpful? Well, $$\mathbb{1}$$ is actually the eigenvector with smallest eigenvalue of the matrix $$\mathbf{D}^{-1}(\mathbf{D} - \mathbf{A})$$. So, the vector $$\mathbf{z}$$ that we want must be the eigenvector with the *second*-smallest eigenvalue. 
+
+So, with this math in mind, let's compute the second-smalest eigenvalue of $$\mathbf{L} = \mathbf{D}^{-1}(\mathbf{D} - \mathbf{A})$$, which is often called the (normalized) *Laplacian* matrix of the similarity matrix $$\mathbf{A}$$.
+
+To do this, let's first compute **L**, and use `np.linalg.eig()` to calculate the eigenvalues and eigenvectors associated with **L**. We will then order the eigenvalues in order from least to greatest, and choose the eigenvector associated to the second-smallest eigenvalue, which will be at index 1 in our list. All together, the code looks like so:
+
+```python
+#compute the inverse of D from Part C
+D_inv = np.linalg.inv(D)
+#compute L
+L = D_inv@(D-A)
+
+#Lam = eigenvalues, U = eigenvectors 
+Lam, U = np.linalg.eig(L)
+#sort in ascending order by eigenvalue 
+ix = Lam.argsort()
+Lam,U = Lam[ix], U[:,ix]
+
+z_eig = U[:,1]
+```
+
+Now that we have this eigenvector, we can plot our moon-shaped dataset, using `z_eig` for the colors instead of `z_`. Note that the data point still belongs in $$C_0$$ if `z_eig[i] > 0` and vice versa if the data point belongs in $$C_1$$.
+
+```python
+plt.scatter(X[:,0], X[:,1], c = [z_eig < 0])
+plt.show()
+```
+![hw2_colorploteig.png]({{ site.baseurl }}/images/hw2_colorploteig.png)
+
+Looking a lot better!
+
 
