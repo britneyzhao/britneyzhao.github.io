@@ -177,4 +177,56 @@ z_i =
 \end{cases}
 $$
 
+Using this vector **z**, we can compute the norm cut like so: 
 
+$$\mathbf{N}_{\mathbf{A}}(C_0, C_1) = 2\frac{\mathbf{z}^T (\mathbf{D} - \mathbf{A})\mathbf{z}}{\mathbf{z}^T\mathbf{D}\mathbf{z}}\;,$$
+
+where $$\mathbf{D}$$ is the diagonal matrix with nonzero entries $$d_{ii} = d_i$$, and  where $$d_i = \sum_{j = 1}^n a_i$$ is the degree (row-sum) from before.
+
+With this new approach, let's create a new function `transform()` which will return the appropriate **z** vector based on the formula above:
+
+```python
+#create z based on the formula
+def transform(A,y):
+    #get the volumes of the clusters
+    v0, v1 = vols(A,y)
+    #first fill z with 1/v0
+    z = np.array([1/v0 for i in range(len(y))])
+    
+    #create a boolean mask to see which values should be -1/v1
+    mask = y == 1
+    z[mask] = -1/v1
+    
+    return z
+```
+
+To test our function, let's compute the matrix product and see how it compares to our original norm cut value from Part B. Let's also check that $$\mathbf{z}^T\mathbf{D}\mathbb{1} = 0$$, where $$\mathbb{1}$$ is the vector of `n` ones, which should be true if our **z** is correct. We'll use `np.isclose()` to determine if the two norm cut calculations are about equal, because rounding could result in `False`.
+
+```python
+#create vector z and its transpose
+z = transform(A,y)
+z_T = z.T
+
+#create D by first making a nxn array with the diagonal entries as d_i
+D = np.array([[sum(A[i]) if i == j else 0 for i in range(len(y))] for j in range(len(y))])
+
+#based on the matrix multiplication formula
+norm1 = 2*(z_T@(D-A)@z)/(z_T@D@z)
+#from Part B
+norm2 = normcut(A,y)
+
+print(np.isclose(norm1, norm2))
+
+print(z_T@D@(np.ones(n)))
+```
+```
+True
+0.0
+```
+
+Looks like everything checks out!
+
+
+## Part D - Minimizing a Function
+
+The matrix multiplication above can be optimizing by substituing **z** for its orthogonal complement relative to $$\mathbf{D}\mathbb{1}$$
