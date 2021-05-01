@@ -363,3 +363,25 @@ plt.show()
 ![hw2_colorplotsynth.png]({{ site.baseurl }}/images/hw2_colorplotsynth.png)
 
 ## Part H - Some Other Moon-Shaped Graphs
+
+Let's see how our function does against other data sets! We'll continue using `make_moons`, but let's use 1000 data points instead this time:
+
+```python
+#1000 points
+X2, y2 = datasets.make_moons(n_samples=1000, shuffle=True, noise=0.05, random_state=None)
+plt.scatter(X2[:,0], X2[:,1], c = spectral_clustering(X2, 0.5))
+```
+![hw2_colorplot1000.png]({{ site.baseurl }}/images/hw2_colorplot1000.png)
+
+Looks good! Just the tips of the moons closest to the other cluster are a little discolored, but this is minor. 
+
+Now, let's see how adding noise to 1000 data points will change the graph: 
+
+```python
+#1000 points, 0.10 noise
+X1, y1 = datasets.make_moons(n_samples=1000, shuffle=True, noise=0.10, random_state=None)
+plt.scatter(X1[:,0], X1[:,1], c = spectral_clustering(X1, 0.4))
+```
+![hw2_colorplot1000noise.png]({{ site.baseurl }}/images/hw2_colorplot1000noise.png)
+
+Also looking good! Again, the tips of the moons closest to the other cluster are a little discolored, but this is minor again. 
