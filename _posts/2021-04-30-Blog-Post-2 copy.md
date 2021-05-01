@@ -314,4 +314,52 @@ plt.show()
 
 Looking a lot better!
 
+## Part G - A Synthesized Version
 
+Now, let's put all of this together into one function! So, let's create the function `spectral_clustering(X, epsilon)` where `X` is the data and `epsilon` is the distance threshold. With this data, we need to achieve the following:
+
+1. Construct the similarity matrix. 
+2. Construct the Laplacian matrix. 
+3. Compute the eigenvector with second-smallest eigenvalue of the Laplacian matrix. 
+4. Return labels based on this eigenvector. 
+
+This is all code we've written and gone through before, so let's put it all together:
+
+```python
+"""
+@param X: nxn matrix of data
+@param epsilon: positive number, represents minimum distance
+@return array of binary labels which indicate if a data point i is in group 0 or group 1
+"""
+def spectral_clustering(X, epsilon): 
+   
+    """construct the similarity matrix using boolean masks"""
+    A = sklearn.metrics.pairwise_distances(X)
+    A[A >= epsilon] = 0
+    mask1 = A<epsilon
+    mask2 = A>0
+    A[mask1 & mask2] = 1
+    
+    """create the Laplacian matrix using the defined diagonal matrix D"""
+    length, width = A.shape
+    D = np.array([[sum(A[i]) if i == j else 0 for i in range(length)] for j in range(width)])
+    L = (np.linalg.inv(D))@(D-A)
+    
+    """compute the second-smallest eigenvalue"""
+    Lam, U = np.linalg.eig(L)
+    ix = Lam.argsort()
+    Lam,U = Lam[ix], U[:,ix]
+
+    """return the eigenvector associated with the second-smallest eigenvalue"""
+    return [U[:,1] < 0]
+```
+
+Using this synthesized version, let's plot the moon-shaped data again!
+
+```python
+plt.scatter(X[:,0], X[:,1], c = spectral_clustering(X, 0.4))
+plt.show()
+```
+![hw2_colorplotsynth.png]({{ site.baseurl }}/images/hw2_colorplotsynth.png)
+
+## Part H - Some Other Moon-Shaped Graphs
